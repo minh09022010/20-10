@@ -1,0 +1,374 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Gửi Em 20-10</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600&family=Playfair+Display:ital,wght@1,500&display=swap">
+<style>
+/* Layout: full-screen WebGL scene (particle heart over orbiting text rings), caption centered under the heart, small controls pinned to the edges. */
+:root {
+  --ink: #05030a;
+  --rose: #e8838f;
+  --blush: #ffd9de;
+  --muted: #b9a3ad;
+  --panel: #150d16;
+  --line: #3a2a38;
+  --font-display: "Playfair Display", "Times New Roman", serif;
+  --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--ink); color: var(--blush);
+  font-family: var(--font-body); overflow: hidden;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box; position: relative;
+}
+canvas.layer { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#stars { z-index: 0; }
+#gl { z-index: 1; touch-action: none; cursor: grab; }
+.ui { position: relative; z-index: 2; height: 100%; pointer-events: none; }
+.top { position: absolute; left: 0; right: 0; top: 10px; text-align: center; }
+.top .date { font-size: 12px; letter-spacing: .32em; text-transform: uppercase; color: var(--rose); }
+.top h1 { margin: 6px 0 0; font: italic 500 clamp(22px, 5vw, 34px)/1.2 var(--font-display); text-wrap: balance; }
+.caption {
+  position: absolute; left: 0; right: 0; top: 56%;
+  text-align: center; font: 300 clamp(13px, 2.6vw, 16px)/1.5 var(--font-body);
+  color: var(--blush); letter-spacing: .04em; text-wrap: balance;
+  transition: opacity .9s ease; text-shadow: 0 0 14px rgba(232,131,143,.6);
+}
+.bar { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: center; gap: 10px; pointer-events: auto; }
+button, .filebtn {
+  font: 600 13px var(--font-body); color: var(--blush); background: rgba(21,13,22,.7);
+  border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+button:hover, .filebtn:hover { border-color: var(--rose); }
+button:focus-visible, .filebtn:focus-within, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; pointer-events: auto;
+  max-width: 460px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 18px 18px 0 0; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.sheet label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.sheet input[type=text], .sheet textarea {
+  font: 400 15px var(--font-body); color: var(--blush); background: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; resize: vertical; min-width: 0;
+}
+.sheet .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.filebtn { position: relative; display: inline-block; }
+.filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+</style>
+
+<canvas id="stars" class="layer"></canvas>
+<canvas id="gl" class="layer" aria-label="Trái tim hạt bay quanh những dòng chữ"></canvas>
+
+<div class="ui">
+  <div class="top">
+    <div class="date">20 · 10</div>
+    <h1 id="title">Gửi các bạn nữ 10A4, ngày 20 tháng 10</h1>
+  </div>
+  <div class="caption" id="caption"></div>
+
+  <div class="bar" id="bar">
+    <button id="editBtn" type="button">Tùy chỉnh lời nhắn</button>
+  </div>
+
+  <form class="sheet" id="sheet" hidden>
+    <label for="nameIn">Gửi cho
+      <input id="nameIn" type="text" value="các bạn nữ 10A4" maxlength="30" autocomplete="off">
+    </label>
+    <label for="msgIn">Lời nhắn (mỗi dòng một câu)
+      <textarea id="msgIn" rows="6"></textarea>
+    </label>
+    <div class="row">
+      <span class="filebtn">Thêm ảnh<input id="photoIn" type="file" accept="image/*" multiple></span>
+      <button id="applyBtn" type="submit">Áp dụng</button>
+      <button id="closeBtn" type="button">Đóng</button>
+    </div>
+    <p class="hint">Ảnh chỉ nằm trên máy của bạn, không được tải lên đâu cả. Kéo trên màn hình để xoay.</p>
+  </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DEFAULT_MSGS = [
+    "Chúc mấy bạn nữ 10A4 20/10 vui vẻ",
+    "Chúc các bạn luôn xinh đẹp",
+    "Mỗi ngày đều cười thật tươi nhé",
+    "Học giỏi, vui vẻ, bình an",
+    "Cảm ơn các bạn vì có mặt ở 10A4",
+    "Chúc mừng ngày Phụ nữ Việt Nam 20-10"
+  ];
+  var state = { name: "các bạn nữ 10A4", msgs: DEFAULT_MSGS.slice() };
+
+  var glCanvas = document.getElementById("gl");
+  var renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  var root = new THREE.Group();
+  scene.add(root);
+
+  /* ---------- Heart of particles ---------- */
+  var heartGroup = new THREE.Group();
+  heartGroup.position.y = 1.55;
+  root.add(heartGroup);
+  var N = 16000, pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+  var cA = new THREE.Color("#ff9aa8"), cB = new THREE.Color("#b84a63"), tmp = new THREE.Color();
+  for (var i = 0; i < N;) {
+    var x = (Math.random() * 2 - 1) * 1.35, y = (Math.random() * 2 - 1) * 1.3;
+    var f = Math.pow(x * x + y * y - 1, 3) - x * x * y * y * y;
+    if (f > 0) continue;
+    var zmax = 0.62 * Math.sqrt(Math.max(0, 1 - x * x / 2.1 - Math.pow(y - 0.2, 2) / 2.6));
+    var z = (Math.random() * 2 - 1) * zmax;
+    // push a share of points outward so the rim looks soft and furry
+    var push = Math.random() < 0.55 ? 1 + Math.random() * 0.06 : 1;
+    pos[i * 3] = x * push + (Math.random() - .5) * .03;
+    pos[i * 3 + 1] = y * push + (Math.random() - .5) * .03;
+    pos[i * 3 + 2] = z;
+    tmp.copy(cB).lerp(cA, Math.random());
+    col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b;
+    i++;
+  }
+  var hg = new THREE.BufferGeometry();
+  hg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  hg.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  var heart = new THREE.Points(hg, new THREE.PointsMaterial({
+    size: 0.022, vertexColors: true, transparent: true, opacity: 0.85,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  heartGroup.add(heart);
+
+  /* ---------- Disc: dust + text rings ---------- */
+  var disc = new THREE.Group();
+  disc.position.y = -1.5;
+  root.add(disc);
+  var RING_R = 3.3;
+
+  var dustN = 5000, dp = new Float32Array(dustN * 3);
+  for (var d = 0; d < dustN; d++) {
+    var r = Math.sqrt(Math.random()) * RING_R, a = Math.random() * Math.PI * 2;
+    dp[d * 3] = Math.cos(a) * r; dp[d * 3 + 1] = (Math.random() - .5) * .05; dp[d * 3 + 2] = Math.sin(a) * r;
+  }
+  var dg = new THREE.BufferGeometry();
+  dg.setAttribute("position", new THREE.BufferAttribute(dp, 3));
+  var dust = new THREE.Points(dg, new THREE.PointsMaterial({
+    size: 0.016, color: 0xffe9ee, transparent: true, opacity: 0.6,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  disc.add(dust);
+
+  var rings = [];
+  var RING_SPEC = [
+    { f: 0.93, px: 44, w: 600, op: 1.0, sp: 0.10 },
+    { f: 0.77, px: 38, w: 400, op: 0.95, sp: -0.14 },
+    { f: 0.62, px: 33, w: 400, op: 0.85, sp: 0.18 },
+    { f: 0.47, px: 28, w: 400, op: 0.75, sp: -0.24 },
+    { f: 0.33, px: 24, w: 400, op: 0.65, sp: 0.30 }
+  ];
+  function makeRingTexture(text, spec) {
+    var S = 1024, c = document.createElement("canvas");
+    c.width = c.height = S;
+    var g = c.getContext("2d");
+    var r = spec.f * S / 2, circ = 2 * Math.PI * r;
+    var phrase = text + "  ♥  ";
+    var base = '"Be Vietnam Pro", system-ui, sans-serif';
+    g.font = spec.w + " " + spec.px + "px " + base;
+    var W = g.measureText(phrase).width;
+    var n = Math.max(1, Math.round(circ / W));
+    var px = spec.px * circ / (n * W);
+    g.font = spec.w + " " + px + "px " + base;
+    g.fillStyle = "#ffe3e8"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.shadowColor = "rgba(255,120,150,.8)"; g.shadowBlur = 8;
+    var full = new Array(n + 1).join(phrase), ang = 0, k;
+    for (k = 0; k < full.length; k++) {
+      var ch = full[k], cw = g.measureText(ch).width, mid = ang + cw / 2 / r;
+      g.save(); g.translate(S / 2, S / 2); g.rotate(mid); g.translate(0, -r);
+      g.fillText(ch, 0, 0); g.restore();
+      ang += cw / r;
+    }
+    var t = new THREE.CanvasTexture(c);
+    t.anisotropy = 4;
+    return t;
+  }
+  function buildRings() {
+    rings.forEach(function (m) { disc.remove(m); m.material.map.dispose(); m.material.dispose(); });
+    rings = [];
+    RING_SPEC.forEach(function (spec, i) {
+      var text = state.msgs[i % state.msgs.length];
+      var mat = new THREE.MeshBasicMaterial({
+        map: makeRingTexture(text, spec), transparent: true, opacity: spec.op,
+        depthWrite: false, side: THREE.DoubleSide
+      });
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(RING_R * 2, RING_R * 2), mat);
+      m.rotation.x = -Math.PI / 2;
+      m.userData.sp = spec.sp;
+      m.userData.zr = Math.random() * 6;
+      disc.add(m); rings.push(m);
+    });
+  }
+
+  /* ---------- Floating photos ---------- */
+  var photos = [], PHOTO_COUNT = 6;
+  function placeholderCanvas(hue) {
+    var c = document.createElement("canvas"); c.width = c.height = 128;
+    var g = c.getContext("2d");
+    var gr = g.createLinearGradient(0, 0, 128, 128);
+    gr.addColorStop(0, "hsl(" + hue + ",55%,72%)"); gr.addColorStop(1, "hsl(" + (hue + 30) + ",50%,42%)");
+    g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    g.fillStyle = "rgba(255,255,255,.85)"; g.font = "56px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText("♥", 64, 70);
+    return c;
+  }
+  function roundedTexture(src) {
+    var c = document.createElement("canvas"); c.width = c.height = 256;
+    var g = c.getContext("2d"), r = 28;
+    g.beginPath();
+    g.moveTo(r, 0); g.arcTo(256, 0, 256, 256, r); g.arcTo(256, 256, 0, 256, r);
+    g.arcTo(0, 256, 0, 0, r); g.arcTo(0, 0, 256, 0, r); g.closePath(); g.clip();
+    var w = src.width || src.naturalWidth, h = src.height || src.naturalHeight, s = Math.min(w, h);
+    g.drawImage(src, (w - s) / 2, (h - s) / 2, s, s, 0, 0, 256, 256);
+    g.lineWidth = 6; g.strokeStyle = "rgba(255,217,222,.9)"; g.stroke();
+    return new THREE.CanvasTexture(c);
+  }
+  for (var p = 0; p < PHOTO_COUNT; p++) {
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: roundedTexture(placeholderCanvas(335 + p * 12)), transparent: true }));
+    sp.scale.set(0.34, 0.34, 1);
+    sp.userData = { a: p / PHOTO_COUNT * Math.PI * 2, r: 0.75 + (p % 2) * 0.22, y: 0.35 + (p % 3) * 0.16, v: 0.25 + (p % 3) * 0.07 };
+    root.add(sp); photos.push(sp);
+  }
+  function loadPhotos(files) {
+    Array.prototype.slice.call(files, 0, PHOTO_COUNT).forEach(function (file, i) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var old = photos[i].material.map;
+        photos[i].material.map = roundedTexture(img);
+        photos[i].material.needsUpdate = true;
+        old.dispose(); URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    });
+  }
+
+  /* ---------- Background stars + meteors (2D) ---------- */
+  var sc = document.getElementById("stars"), sg = sc.getContext("2d"), bgStars = [], meteors = [];
+  function resizeStars() {
+    var dpr = Math.min(devicePixelRatio || 1, 2);
+    sc.width = innerWidth * dpr; sc.height = innerHeight * dpr;
+    sg.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bgStars = [];
+    for (var i = 0; i < 90; i++) bgStars.push({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, r: Math.random() * 1.1 + .2, t: Math.random() * 6 });
+  }
+  function drawStars(t, dt) {
+    sg.clearRect(0, 0, innerWidth, innerHeight);
+    bgStars.forEach(function (s) {
+      sg.globalAlpha = .25 + .45 * Math.abs(Math.sin(t * .8 + s.t));
+      sg.fillStyle = "#ffe9ee"; sg.fillRect(s.x, s.y, s.r, s.r);
+    });
+    if (!reduce && Math.random() < dt * 1.1 && meteors.length < 5) {
+      meteors.push({ x: Math.random() * innerWidth * 1.2, y: -20, vx: -240 - Math.random() * 120, vy: 320 + Math.random() * 160, life: 1 });
+    }
+    meteors = meteors.filter(function (m) { return m.life > 0 && m.y < innerHeight + 40; });
+    meteors.forEach(function (m) {
+      m.x += m.vx * dt; m.y += m.vy * dt; m.life -= dt * .35;
+      var g = sg.createLinearGradient(m.x, m.y, m.x - m.vx * .18, m.y - m.vy * .18);
+      g.addColorStop(0, "rgba(255,225,232," + (.8 * m.life) + ")"); g.addColorStop(1, "rgba(255,225,232,0)");
+      sg.globalAlpha = 1; sg.strokeStyle = g; sg.lineWidth = 1.4;
+      sg.beginPath(); sg.moveTo(m.x, m.y); sg.lineTo(m.x - m.vx * .18, m.y - m.vy * .18); sg.stroke();
+    });
+    sg.globalAlpha = 1;
+  }
+
+  /* ---------- Captions ---------- */
+  var capEl = document.getElementById("caption"), capIdx = 0, capTimer = null;
+  function showCaption() {
+    capEl.style.opacity = 0;
+    setTimeout(function () {
+      capEl.textContent = state.msgs[capIdx % state.msgs.length];
+      capEl.style.opacity = 1; capIdx++;
+    }, 700);
+  }
+  function startCaptions() {
+    clearInterval(capTimer); capIdx = 0; showCaption();
+    capTimer = setInterval(showCaption, 3800);
+  }
+
+  /* ---------- Sizing + interaction ---------- */
+  var yaw = 0, pitch = 0, dragging = false, lastX = 0, lastY = 0;
+  function resize() {
+    var w = innerWidth, h = innerHeight, asp = w / h;
+    renderer.setSize(w, h, false);
+    camera.aspect = asp;
+    var tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    var dist = Math.max(8.2, 2.7 / (tanH * asp));
+    camera.userData.dist = dist;
+    camera.updateProjectionMatrix();
+    resizeStars();
+  }
+  glCanvas.addEventListener("pointerdown", function (e) { dragging = true; lastX = e.clientX; lastY = e.clientY; glCanvas.setPointerCapture(e.pointerId); glCanvas.style.cursor = "grabbing"; });
+  glCanvas.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    yaw += (e.clientX - lastX) * 0.008; pitch = Math.max(-0.35, Math.min(0.45, pitch + (e.clientY - lastY) * 0.004));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  function endDrag() { dragging = false; glCanvas.style.cursor = "grab"; }
+  glCanvas.addEventListener("pointerup", endDrag);
+  glCanvas.addEventListener("pointercancel", endDrag);
+  addEventListener("resize", resize);
+
+  /* ---------- Controls ---------- */
+  var sheet = document.getElementById("sheet"), bar = document.getElementById("bar");
+  var nameIn = document.getElementById("nameIn"), msgIn = document.getElementById("msgIn");
+  msgIn.value = state.msgs.join("\n");
+  function toggleSheet(open) { sheet.hidden = !open; bar.hidden = open; if (open) nameIn.focus(); }
+  document.getElementById("editBtn").addEventListener("click", function () { toggleSheet(true); });
+  document.getElementById("closeBtn").addEventListener("click", function () { toggleSheet(false); });
+  document.getElementById("photoIn").addEventListener("change", function (e) { loadPhotos(e.target.files); });
+  sheet.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var lines = msgIn.value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+    if (lines.length) state.msgs = lines;
+    state.name = nameIn.value.trim() || "các bạn nữ 10A4";
+    document.getElementById("title").textContent = "Gửi " + state.name + ", ngày 20 tháng 10";
+    buildRings(); startCaptions(); toggleSheet(false);
+  });
+
+  /* ---------- Loop ---------- */
+  var clock = new THREE.Clock(), spd = reduce ? 0.3 : 1;
+  function frame() {
+    var dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+    var beat = 1 + 0.035 * Math.pow(Math.max(0, Math.sin(t * 2.2)), 6) + 0.012 * Math.sin(t * 1.1);
+    heartGroup.scale.setScalar(1.15 * beat);
+    heart.rotation.y += dt * 0.35 * spd;
+    heartGroup.position.y = 1.55 + Math.sin(t * 0.8) * 0.06 * spd;
+    root.rotation.y = yaw;
+    rings.forEach(function (m) { m.rotation.z += m.userData.sp * dt * spd; });
+    dust.rotation.y += dt * 0.05 * spd;
+    photos.forEach(function (s) {
+      var u = s.userData; u.a += u.v * dt * spd;
+      s.position.set(Math.cos(u.a) * u.r, u.y + Math.sin(t + u.a * 2) * 0.04, Math.sin(u.a) * u.r);
+      s.material.opacity = 0.75 + 0.25 * Math.sin(u.a - Math.PI / 2 * 0.0 + 1.5);
+    });
+    var dist = camera.userData.dist;
+    camera.position.set(0, dist * (0.3 + pitch), dist);
+    camera.lookAt(0, 0.1, 0);
+    renderer.render(scene, camera);
+    drawStars(t, dt);
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  buildRings(); startCaptions();
+  // redraw ring text once webfonts arrive so the glyphs match the page font
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('400 24px "Be Vietnam Pro"').then(function () { buildRings(); }).catch(function () {});
+  }
+  frame();
+})();
+</script>
+
+</body></html>
